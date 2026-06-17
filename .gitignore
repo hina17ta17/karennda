@@ -1,0 +1,9 @@
+# 依存パッケージ（package.json から再生成されるため不要）
+node_modules/
+
+# SQLiteデータベース（個人情報を含む実データのため、リポジトリには含めない）
+calendar.db
+
+# OS / エディタ生成ファイル
+.DS_Store
+Thumbs.db

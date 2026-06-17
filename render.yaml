@@ -1,0 +1,17 @@
+# ============================================================
+# render.yaml : Render (https://render.com) デプロイ設定
+# ------------------------------------------------------------
+# GitHubリポジトリと連携して、この設定どおりにWebサービスを作成する。
+# Renderダッシュボードの「New +」→「Blueprint」からこのファイルを読み込むと
+# 自動で下記の構成が作られる（手動設定でも同じ内容を入力すればOK）。
+# ============================================================
+services:
+  - type: web
+    name: calendar-app
+    runtime: node
+    plan: free                 # 無料プラン
+    buildCommand: npm install  # 依存パッケージのインストール
+    startCommand: npm start    # = node server.js
+    envVars:
+      - key: SESSION_SECRET
+        generateValue: true    # ランダムな秘密鍵をRenderが自動生成

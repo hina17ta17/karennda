@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>マイカレンダー</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ========== ログイン / 登録 画面 ========== -->
+  <div id="auth-view" class="auth-view">
+    <div class="auth-card">
+      <h1 class="logo">📅 マイカレンダー</h1>
+      <p class="auth-subtitle">ログインして自分専用のカレンダーを使いましょう</p>
+
+      <div class="tabs">
+        <button id="tab-login" class="tab active">ログイン</button>
+        <button id="tab-register" class="tab">新規登録</button>
+      </div>
+
+      <form id="auth-form" autocomplete="off">
+        <label>ユーザー名
+          <input type="text" id="username" required placeholder="username" />
+        </label>
+        <label>パスワード
+          <input type="password" id="password" required placeholder="••••••" />
+        </label>
+        <p id="auth-error" class="error-msg"></p>
+        <button type="submit" id="auth-submit" class="btn-primary">ログイン</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== カレンダー画面 ========== -->
+  <div id="app-view" class="app-view hidden">
+    <header class="app-header">
+      <div class="cal-nav">
+        <button id="prev-month" class="nav-btn">‹</button>
+        <h2 id="month-label">2026年 6月</h2>
+        <button id="next-month" class="nav-btn">›</button>
+        <button id="today-btn" class="today-btn">今日</button>
+      </div>
+      <div class="user-box">
+        <span id="user-label"></span>
+        <button id="logout-btn" class="logout-btn">ログアウト</button>
+      </div>
+    </header>
+
+    <div class="weekday-row">
+      <div class="sun">日</div><div>月</div><div>火</div><div>水</div>
+      <div>木</div><div>金</div><div class="sat">土</div>
+    </div>
+    <div id="calendar-grid" class="calendar-grid"></div>
+  </div>
+
+  <!-- ========== 予定モーダル ========== -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-date">予定</h3>
+        <button id="modal-close" class="modal-close">×</button>
+      </div>
+
+      <!-- その日の予定一覧 -->
+      <div id="schedule-list" class="schedule-list"></div>
+
+      <!-- 予定追加フォーム -->
+      <form id="schedule-form" class="schedule-form">
+        <div class="time-row">
+          <label>開始
+            <input type="time" id="start-time" />
+          </label>
+          <label>終了
+            <input type="time" id="end-time" />
+          </label>
+        </div>
+        <label>内容
+          <input type="text" id="content" required placeholder="例: 会議、打ち合わせ" />
+        </label>
+        <button type="submit" class="btn-primary">＋ 予定を追加</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
