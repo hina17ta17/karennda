@@ -7,6 +7,9 @@ calendar.db
 calendar.db-wal
 calendar.db-shm
 
+# 環境変数（接続情報・秘密鍵を含むため絶対にコミットしない）
+.env
+
 # OS / エディタ生成ファイル
 .DS_Store
 Thumbs.db
