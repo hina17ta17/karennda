@@ -2,7 +2,10 @@
 node_modules/
 
 # SQLiteデータベース（個人情報を含む実データのため、リポジトリには含めない）
+# WALモードの付随ファイル(-wal / -shm)もまとめて除外
 calendar.db
+calendar.db-wal
+calendar.db-shm
 
 # OS / エディタ生成ファイル
 .DS_Store
