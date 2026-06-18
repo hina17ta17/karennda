@@ -51,6 +51,20 @@ async function run(sql, args = []) {
 async function init() {
   const initSql = fs.readFileSync(path.join(__dirname, 'init_db.sql'), 'utf-8');
   await client.executeMultiple(initSql);
+
+  // 既存DB（旧スキーマ）向けのマイグレーション:
+  // users に LINE 用カラムが無ければ追加する（新規DBには既にあるので何もしない）
+  const info = await client.execute('PRAGMA table_info(users)');
+  const cols = info.rows.map((r) => r.name);
+  if (!cols.includes('line_user_id')) {
+    await client.execute('ALTER TABLE users ADD COLUMN line_user_id TEXT');
+  }
+  if (!cols.includes('display_name')) {
+    await client.execute('ALTER TABLE users ADD COLUMN display_name TEXT');
+  }
+  // line_user_id の重複を防ぐ一意インデックス（NULLは複数可）
+  await client.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_line ON users(line_user_id)');
+
   const where = url.startsWith('libsql://') ? 'Turso(クラウド)' : 'ローカルファイル';
   console.log(`[db] 初期化完了 -> ${where} : ${url}`);
 }

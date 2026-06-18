@@ -5,12 +5,14 @@
 --   sqlite3 calendar.db < init_db.sql
 -- ============================================================
 
--- 1. users テーブル（ユーザー名・パスワードを保存）
+-- 1. users テーブル（LINEログイン用）
 CREATE TABLE IF NOT EXISTS users (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  username   TEXT    NOT NULL UNIQUE,            -- ユーザー名（重複不可）
-  password   TEXT    NOT NULL,                   -- bcryptでハッシュ化したパスワード
-  created_at TEXT    NOT NULL DEFAULT (datetime('now', 'localtime'))
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  line_user_id TEXT    UNIQUE,                   -- LINEのユーザーID（IDトークンの sub）
+  display_name TEXT,                             -- LINEの表示名
+  username     TEXT    UNIQUE,                   -- （旧）ユーザー名: 後方互換のため残す
+  password     TEXT,                             -- （旧）パスワード: 後方互換のため残す
+  created_at   TEXT    NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
 -- 2. schedules テーブル（ユーザーID・日付・時間・内容を保存）

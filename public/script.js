@@ -1,7 +1,7 @@
 // ============================================================
 // script.js : フロントエンド（Vanilla JS）
 // ------------------------------------------------------------
-// 認証画面の制御、カレンダー描画、予定モーダルの操作を担当。
+// 認証は LINE(LIFF) でログイン。カレンダー描画・予定モーダルの操作を担当。
 // サーバーとは fetch + JSON でやり取りする。
 // ============================================================
 
@@ -18,13 +18,11 @@ async function api(method, url, body) {
 }
 
 // --- 要素参照 -----------------------------------------------
-const authView   = document.getElementById('auth-view');
-const appView    = document.getElementById('app-view');
-const authForm   = document.getElementById('auth-form');
-const authError  = document.getElementById('auth-error');
-const authSubmit = document.getElementById('auth-submit');
-const tabLogin   = document.getElementById('tab-login');
-const tabRegister= document.getElementById('tab-register');
+const authView    = document.getElementById('auth-view');
+const appView     = document.getElementById('app-view');
+const authError   = document.getElementById('auth-error');
+const authStatus  = document.getElementById('auth-status');
+const lineLoginBtn = document.getElementById('line-login-btn');
 
 const monthLabel = document.getElementById('month-label');
 const calGrid    = document.getElementById('calendar-grid');
@@ -36,36 +34,44 @@ const scheduleList = document.getElementById('schedule-list');
 const scheduleForm = document.getElementById('schedule-form');
 
 // --- 状態 ---------------------------------------------------
-let mode = 'login';                 // 'login' or 'register'
 let viewDate = new Date();          // 表示中の月
 let monthSchedules = [];            // 表示月の予定（キャッシュ）
 let selectedDate = null;            // モーダルで選択中の日付 'YYYY-MM-DD'
+let liffId = '';                    // サーバーから受け取るLIFF ID
 
 // ============================================================
-// 認証画面の制御
+// 認証（LINE / LIFF）
 // ============================================================
-function setMode(next) {
-  mode = next;
-  const isLogin = mode === 'login';
-  tabLogin.classList.toggle('active', isLogin);
-  tabRegister.classList.toggle('active', !isLogin);
-  authSubmit.textContent = isLogin ? 'ログイン' : '登録する';
-  authError.textContent = '';
+function showAuthMessage(msg) {
+  authStatus.textContent = '';
+  authError.textContent = msg;
 }
-tabLogin.addEventListener('click', () => setMode('login'));
-tabRegister.addEventListener('click', () => setMode('register'));
 
-authForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
+// LINEのIDトークンをサーバーに送ってログイン（セッション確立）
+async function loginWithLine() {
   authError.textContent = '';
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
-  const url = mode === 'login' ? '/api/login' : '/api/register';
+  authStatus.textContent = 'ログイン中…';
+  const idToken = liff.getIDToken();
+  if (!idToken) {
+    showAuthMessage('IDトークンを取得できませんでした。LINEログインをやり直してください。');
+    lineLoginBtn.classList.remove('hidden');
+    return;
+  }
   try {
-    const user = await api('POST', url, { username, password });
+    const user = await api('POST', '/api/line-login', { idToken });
     enterApp(user);
   } catch (err) {
-    authError.textContent = err.message;
+    showAuthMessage('ログインに失敗しました: ' + err.message);
+    lineLoginBtn.classList.remove('hidden');
+  }
+}
+
+// ボタン押下：未ログインならLINEログインへ、ログイン済みならセッション確立
+lineLoginBtn.addEventListener('click', () => {
+  if (window.liff && liff.isLoggedIn()) {
+    loginWithLine();
+  } else if (window.liff) {
+    liff.login(); // LINEのログイン画面へ（戻ってくると再度initが走る）
   }
 });
 
@@ -83,12 +89,14 @@ function enterApp(user) {
 function exitApp() {
   appView.classList.add('hidden');
   authView.classList.remove('hidden');
-  authForm.reset();
-  setMode('login');
+  authError.textContent = '';
+  authStatus.textContent = '';
+  lineLoginBtn.classList.remove('hidden');
 }
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
-  await api('POST', '/api/logout');
+  try { await api('POST', '/api/logout'); } catch (_) {}
+  try { if (window.liff && liff.isLoggedIn()) liff.logout(); } catch (_) {}
   exitApp();
 });
 
@@ -263,13 +271,76 @@ overlay.addEventListener('click', (e) => {
 });
 
 // ============================================================
-// 起動時：ログイン済みか確認
+// 画面内キーボード対応（デザインは変えず、挙動だけ追加）
+//  ① 入力欄がキーボードに隠れない（focus時にスクロールして見える位置へ）
+//  ② キーボードで画面が狭くなってもUIが収まる/スクロールできる
+// ============================================================
+(function setupKeyboardHandling() {
+  const vv = window.visualViewport;
+  if (!vv) return; // 非対応環境では何もしない（デザインそのまま）
+
+  function onViewport() {
+    // 実際に見えている高さをCSS変数へ（キーボード分を除いた高さ）
+    document.documentElement.style.setProperty('--vvh', vv.height + 'px');
+    // キーボードが出ている（=元の高さより大きく縮んだ）かを判定
+    const keyboardOpen = (window.innerHeight - vv.height) > 150;
+    document.body.classList.toggle('keyboard-open', keyboardOpen);
+  }
+  vv.addEventListener('resize', onViewport);
+  vv.addEventListener('scroll', onViewport);
+  onViewport();
+
+  // 入力欄にフォーカスしたら、その欄が見える位置へスクロール
+  document.addEventListener('focusin', (e) => {
+    if (e.target.matches('input, textarea')) {
+      setTimeout(() => {
+        e.target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }, 150);
+    }
+  });
+})();
+
+// ============================================================
+// 起動時の流れ
+//  1) 既にセッションがあればそのままカレンダーへ
+//  2) 無ければ LIFF を初期化し、LINEログイン状態なら自動ログイン
 // ============================================================
 (async function init() {
+  // 1) 既存セッションを確認
   try {
     const user = await api('GET', '/api/me');
     enterApp(user);
+    return;
+  } catch (_) { /* 未ログイン → LINE認証へ */ }
+
+  // 2) LIFF 初期化
+  authStatus.textContent = '読み込み中…';
+  try {
+    const cfg = await api('GET', '/api/config');
+    liffId = cfg.liffId;
   } catch (_) {
-    exitApp(); // 未ログインなら認証画面
+    showAuthMessage('サーバー設定の取得に失敗しました。');
+    return;
+  }
+
+  if (!liffId) {
+    showAuthMessage('LIFF IDが未設定です。環境変数 LIFF_ID（.env / Render）を設定してください。');
+    return;
+  }
+  if (!window.liff) {
+    showAuthMessage('LIFF SDKを読み込めませんでした（ネットワークをご確認ください）。');
+    return;
+  }
+
+  try {
+    await liff.init({ liffId });
+    if (liff.isLoggedIn()) {
+      await loginWithLine();          // ログイン済み → 自動でセッション確立
+    } else {
+      authStatus.textContent = '';
+      lineLoginBtn.classList.remove('hidden'); // 「LINEでログイン」ボタンを表示
+    }
+  } catch (err) {
+    showAuthMessage('LINEの初期化に失敗しました: ' + (err.message || err));
   }
 })();

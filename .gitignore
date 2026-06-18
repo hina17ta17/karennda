@@ -10,6 +10,9 @@ calendar.db-shm
 # 環境変数（接続情報・秘密鍵を含むため絶対にコミットしない）
 .env
 
+# 個人用メモ（GitHubには上げない）
+構成図.md
+
 # OS / エディタ生成ファイル
 .DS_Store
 Thumbs.db

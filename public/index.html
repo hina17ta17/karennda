@@ -2,33 +2,21 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
   <title>マイカレンダー</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- ========== ログイン / 登録 画面 ========== -->
+  <!-- ========== ログイン画面（LINEログイン） ========== -->
   <div id="auth-view" class="auth-view">
     <div class="auth-card">
       <h1 class="logo">📅 マイカレンダー</h1>
-      <p class="auth-subtitle">ログインして自分専用のカレンダーを使いましょう</p>
+      <p class="auth-subtitle">LINEアカウントでログインして<br>自分専用のカレンダーを使いましょう</p>
 
-      <div class="tabs">
-        <button id="tab-login" class="tab active">ログイン</button>
-        <button id="tab-register" class="tab">新規登録</button>
-      </div>
-
-      <form id="auth-form" autocomplete="off">
-        <label>ユーザー名
-          <input type="text" id="username" required placeholder="username" />
-        </label>
-        <label>パスワード
-          <input type="password" id="password" required placeholder="••••••" />
-        </label>
-        <p id="auth-error" class="error-msg"></p>
-        <button type="submit" id="auth-submit" class="btn-primary">ログイン</button>
-      </form>
+      <p id="auth-error" class="error-msg"></p>
+      <button type="button" id="line-login-btn" class="btn-line hidden">LINEでログイン</button>
+      <p id="auth-status" class="auth-status">読み込み中…</p>
     </div>
   </div>
 
@@ -83,6 +71,8 @@
     </div>
   </div>
 
+  <!-- LIFF SDK（LINE内アプリ化のための公式ライブラリ）-->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

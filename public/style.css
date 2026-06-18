@@ -154,3 +154,22 @@ form input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 
 .schedule-form { border-top: 1px dashed var(--border); padding-top: 16px; }
 .time-row { display: flex; gap: 12px; }
 .time-row label { flex: 1; }
+
+/* ---------- LINEログインボタン / 状態表示 ---------- */
+.btn-line {
+  width: 100%; padding: 12px; border: none; border-radius: 9px;
+  background: #06c755; color: #fff; font-size: 0.95rem; font-weight: 700; cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-line:hover { background: #05b34c; }
+.auth-status { text-align: center; color: var(--muted); font-size: 0.82rem; margin-top: 12px; min-height: 1.1em; }
+
+/* ---------- 画面内キーボード対応（出ている時だけ効く / 通常時は元のデザイン）---------- */
+body.keyboard-open .modal-overlay {
+  height: var(--vvh, 100%);          /* 見えている高さに合わせる */
+  align-items: flex-start;            /* モーダルを上寄せにしてキーボードに隠れないように */
+  padding-top: 12px;
+}
+body.keyboard-open .modal {
+  max-height: calc(var(--vvh, 100vh) - 24px); /* 狭くなった画面に収める（中はスクロール可） */
+}
