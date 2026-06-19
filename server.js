@@ -76,9 +76,11 @@ app.post('/api/line-login', wrap(async (req, res) => {
   // 既存ユーザーを探す → 無ければ作成（upsert）
   let user = await db.get('SELECT * FROM users WHERE line_user_id = ?', [lineUserId]);
   if (!user) {
+    // 旧スキーマでは username/password が NOT NULL のため値を入れる
+    // （LINEログインでは未使用。username=LINEユーザーID, password=空文字。新スキーマでも問題なし）
     const info = await db.run(
-      'INSERT INTO users (line_user_id, display_name) VALUES (?, ?)',
-      [lineUserId, displayName]
+      'INSERT INTO users (line_user_id, display_name, username, password) VALUES (?, ?, ?, ?)',
+      [lineUserId, displayName, lineUserId, '']
     );
     user = { id: info.lastInsertRowid, display_name: displayName };
   } else if (user.display_name !== displayName) {
