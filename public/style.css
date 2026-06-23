@@ -1,25 +1,33 @@
 /* ============================================================
    style.css : カレンダーアプリのスタイル
+   デザイン: 温かみのある紙の背景 / 黒に近いボタン / テラコッタの差し色 /
+             見出しはセリフ体。シンプルで落ち着いた雰囲気。
    ============================================================ */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --primary: #4f6df5;
-  --primary-dark: #3a55d9;
-  --bg: #f4f6fb;
+  --ink: #211f1b;            /* 主ボタン・強い文字（黒に近い）*/
+  --ink-hover: #3a362f;
+  --primary: #b15c3b;        /* 差し色（テラコッタ）: 今日・アクティブ・リンク */
+  --primary-dark: #8f472c;
+  --accent-soft: #f0e6dd;    /* 差し色の淡い背景（予定ピル等）*/
+  --bg: #f3f1ea;             /* 背景（温かみのある紙）*/
   --card: #ffffff;
-  --text: #2b2f38;
-  --muted: #8a91a0;
-  --border: #e6e9f0;
-  --sun: #e5484d;
-  --sat: #3b82c4;
+  --text: #26241f;
+  --muted: #938c80;
+  --border: #e6e0d4;
+  --sun: #b1503f;
+  --sat: #5e768a;
+  --serif: Georgia, "Times New Roman", "Yu Mincho", "Hiragino Mincho ProN", serif;
 }
 
 body {
-  font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+  font-family: "Helvetica Neue", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: 0.01em;
 }
 
 .hidden { display: none !important; }
@@ -36,114 +44,144 @@ body {
   background: var(--card);
   width: 100%;
   max-width: 380px;
-  padding: 36px 32px;
-  border-radius: 16px;
-  box-shadow: 0 12px 40px rgba(60, 70, 120, 0.15);
+  padding: 40px 34px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 12px 32px rgba(40,34,24,0.07);
 }
-.logo { text-align: center; font-size: 1.6rem; margin-bottom: 6px; }
-.auth-subtitle { text-align: center; color: var(--muted); font-size: 0.85rem; margin-bottom: 24px; }
+.logo {
+  text-align: center; font-family: var(--serif); font-weight: 600;
+  font-size: 1.55rem; letter-spacing: 0.02em; margin-bottom: 10px;
+}
+.auth-subtitle { text-align: center; color: var(--muted); font-size: 0.85rem; line-height: 1.6; margin-bottom: 26px; }
 
-.tabs { display: flex; margin-bottom: 20px; border-radius: 10px; background: var(--bg); padding: 4px; }
+.tabs { display: flex; margin-bottom: 20px; border-radius: 9px; background: var(--bg); padding: 4px; }
 .tab {
   flex: 1; border: none; background: transparent; padding: 10px;
-  border-radius: 8px; cursor: pointer; color: var(--muted); font-size: 0.9rem; font-weight: 600;
+  border-radius: 7px; cursor: pointer; color: var(--muted); font-size: 0.9rem; font-weight: 600;
 }
-.tab.active { background: var(--card); color: var(--primary); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.tab.active { background: var(--card); color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
-form label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 14px; font-weight: 600; }
+form label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; font-weight: 600; letter-spacing: 0.03em; }
 form input {
-  width: 100%; margin-top: 6px; padding: 11px 12px;
-  border: 1px solid var(--border); border-radius: 9px; font-size: 0.95rem; color: var(--text);
+  width: 100%; margin-top: 7px; padding: 11px 12px;
+  border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; color: var(--text); background: var(--card);
 }
-form input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,109,245,0.15); }
+form input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(177,92,59,0.16); }
 
 .btn-primary {
-  width: 100%; padding: 12px; border: none; border-radius: 9px;
-  background: var(--primary); color: #fff; font-size: 0.95rem; font-weight: 700; cursor: pointer;
+  width: 100%; padding: 12px; border: none; border-radius: 8px;
+  background: var(--ink); color: #fff; font-size: 0.92rem; font-weight: 600; letter-spacing: 0.03em; cursor: pointer;
   transition: background 0.15s;
 }
-.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary:hover { background: var(--ink-hover); }
 .error-msg { color: var(--sun); font-size: 0.82rem; min-height: 1.1em; margin-bottom: 8px; }
 
 /* ---------- アプリヘッダー ---------- */
-.app-view { max-width: 1000px; margin: 0 auto; padding: 24px 16px; }
+.app-view { max-width: 1000px; margin: 0 auto; padding: 28px 16px; }
 .app-header {
   display: flex; justify-content: space-between; align-items: center;
-  flex-wrap: wrap; gap: 12px; margin-bottom: 18px;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
 }
-.cal-nav { display: flex; align-items: center; gap: 10px; }
-#month-label { font-size: 1.3rem; min-width: 140px; text-align: center; }
+.cal-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#month-label {
+  font-family: var(--serif); font-weight: 600; font-size: 1.32rem;
+  min-width: 132px; text-align: center; letter-spacing: 0.02em;
+}
 .nav-btn {
-  width: 38px; height: 38px; border: 1px solid var(--border); background: var(--card);
-  border-radius: 9px; font-size: 1.3rem; cursor: pointer; color: var(--text); line-height: 1;
+  width: 36px; height: 36px; border: 1px solid var(--border); background: var(--card);
+  border-radius: 8px; font-size: 1.25rem; cursor: pointer; color: var(--text); line-height: 1;
+  transition: background 0.12s, border-color 0.12s;
 }
-.nav-btn:hover { background: var(--bg); }
+.nav-btn:hover { background: var(--bg); border-color: var(--muted); }
 .today-btn {
-  border: 1px solid var(--border); background: var(--card); padding: 8px 14px;
-  border-radius: 9px; cursor: pointer; font-size: 0.85rem; color: var(--primary); font-weight: 600;
+  border: 1px solid var(--border); background: var(--card); padding: 8px 13px;
+  border-radius: 8px; cursor: pointer; font-size: 0.82rem; color: var(--text); font-weight: 600;
+  transition: background 0.12s, border-color 0.12s;
 }
+.today-btn:hover { background: var(--bg); border-color: var(--muted); }
+
+/* ---------- 年・月ジャンプ用ピッカー ---------- */
+.month-picker {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 14px; margin-bottom: 16px;
+}
+.month-picker label { font-size: 0.8rem; color: var(--muted); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.month-picker select {
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 0.9rem; color: var(--text); background: var(--card); cursor: pointer;
+}
+.month-picker select:focus { outline: none; border-color: var(--primary); }
+.month-picker .btn-primary { width: auto; padding: 9px 18px; }
+
 .user-box { display: flex; align-items: center; gap: 12px; }
-#user-label { font-weight: 600; font-size: 0.9rem; }
+#user-label { font-weight: 600; font-size: 0.88rem; color: var(--muted); }
 .logout-btn {
-  border: 1px solid var(--border); background: var(--card); padding: 8px 14px;
-  border-radius: 9px; cursor: pointer; font-size: 0.85rem; color: var(--muted);
+  border: 1px solid var(--border); background: var(--card); padding: 8px 13px;
+  border-radius: 8px; cursor: pointer; font-size: 0.82rem; color: var(--muted);
+  transition: color 0.12s, border-color 0.12s;
 }
 .logout-btn:hover { color: var(--sun); border-color: var(--sun); }
 
 /* ---------- 曜日見出し ---------- */
 .weekday-row {
-  display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
-  margin-bottom: 8px; text-align: center; font-size: 0.8rem; font-weight: 700; color: var(--muted);
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px;
+  margin-bottom: 8px; text-align: center; font-size: 0.74rem; font-weight: 700;
+  letter-spacing: 0.06em; color: var(--muted);
 }
 .weekday-row .sun { color: var(--sun); }
 .weekday-row .sat { color: var(--sat); }
 
 /* ---------- カレンダー本体 ---------- */
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
 .day-cell {
-  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-  min-height: 96px; padding: 6px; cursor: pointer; display: flex; flex-direction: column;
-  transition: box-shadow 0.12s, transform 0.12s;
+  background: var(--card); border: 1px solid var(--border); border-radius: 9px;
+  min-height: 98px; padding: 7px; cursor: pointer; display: flex; flex-direction: column;
+  transition: box-shadow 0.14s, border-color 0.14s, transform 0.14s;
 }
-.day-cell:hover { box-shadow: 0 4px 14px rgba(60,70,120,0.12); transform: translateY(-1px); }
+.day-cell:hover { box-shadow: 0 4px 14px rgba(40,34,24,0.08); border-color: var(--muted); transform: translateY(-1px); }
 .day-cell.empty { background: transparent; border: none; cursor: default; }
 .day-cell.empty:hover { box-shadow: none; transform: none; }
-.day-num { font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+.day-num { font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--text); }
+.day-cell.today { border-color: var(--primary); }
 .day-cell.today .day-num {
-  background: var(--primary); color: #fff; width: 24px; height: 24px;
-  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--primary); color: #fff; width: 23px; height: 23px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.78rem;
 }
 .day-cell.sun .day-num { color: var(--sun); }
 .day-cell.sat .day-num { color: var(--sat); }
 .day-cell.today.sun .day-num, .day-cell.today.sat .day-num { color: #fff; }
 
 .event-pill {
-  background: #eaf0ff; color: var(--primary-dark); font-size: 0.72rem;
-  padding: 2px 6px; border-radius: 5px; margin-bottom: 3px;
+  background: var(--accent-soft); color: var(--primary-dark); font-size: 0.71rem;
+  padding: 2px 7px; border-radius: 4px; margin-bottom: 3px; font-weight: 500;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.more-count { font-size: 0.68rem; color: var(--muted); padding-left: 4px; }
+.more-count { font-size: 0.67rem; color: var(--muted); padding-left: 4px; }
 
 /* ---------- モーダル ---------- */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(30,35,55,0.45);
+  position: fixed; inset: 0; background: rgba(28,24,18,0.42);
   display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50;
 }
 .modal {
-  background: var(--card); width: 100%; max-width: 440px; border-radius: 16px;
-  padding: 24px; max-height: 88vh; overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  background: var(--card); width: 100%; max-width: 440px; border: 1px solid var(--border); border-radius: 14px;
+  padding: 26px; max-height: 88vh; overflow-y: auto;
+  box-shadow: 0 24px 56px rgba(28,24,18,0.20);
 }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-#modal-date { font-size: 1.15rem; }
-.modal-close { border: none; background: transparent; font-size: 1.6rem; cursor: pointer; color: var(--muted); line-height: 1; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+#modal-date { font-family: var(--serif); font-weight: 600; font-size: 1.12rem; letter-spacing: 0.01em; }
+.modal-header h3 { font-family: var(--serif); font-weight: 600; font-size: 1.12rem; }
+.modal-close { border: none; background: transparent; font-size: 1.5rem; cursor: pointer; color: var(--muted); line-height: 1; }
+.modal-close:hover { color: var(--text); }
 
 .schedule-list { margin-bottom: 18px; }
 .schedule-item {
   display: flex; align-items: center; gap: 10px;
-  border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+  border: 1px solid var(--border); border-radius: 9px; padding: 10px 12px; margin-bottom: 8px;
 }
-.schedule-item .time { font-size: 0.8rem; color: var(--primary); font-weight: 700; min-width: 84px; }
+.schedule-item .time { font-size: 0.78rem; color: var(--primary); font-weight: 700; min-width: 84px; }
 .schedule-item .text { flex: 1; font-size: 0.9rem; word-break: break-word; }
 .schedule-item .del-btn {
   border: none; background: transparent; color: var(--muted); cursor: pointer; font-size: 1rem;
@@ -151,14 +189,14 @@ form input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 
 .schedule-item .del-btn:hover { color: var(--sun); }
 .empty-note { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 14px 0; }
 
-.schedule-form { border-top: 1px dashed var(--border); padding-top: 16px; }
+.schedule-form { border-top: 1px solid var(--border); padding-top: 18px; }
 .time-row { display: flex; gap: 12px; }
 .time-row label { flex: 1; }
 
 /* ---------- LINEログインボタン / 状態表示 ---------- */
 .btn-line {
-  width: 100%; padding: 12px; border: none; border-radius: 9px;
-  background: #06c755; color: #fff; font-size: 0.95rem; font-weight: 700; cursor: pointer;
+  width: 100%; padding: 12px; border: none; border-radius: 8px;
+  background: #06c755; color: #fff; font-size: 0.92rem; font-weight: 600; letter-spacing: 0.03em; cursor: pointer;
   transition: background 0.15s;
 }
 .btn-line:hover { background: #05b34c; }
@@ -173,3 +211,46 @@ body.keyboard-open .modal-overlay {
 body.keyboard-open .modal {
   max-height: calc(var(--vvh, 100vh) - 24px); /* 狭くなった画面に収める（中はスクロール可） */
 }
+
+/* ---------- 予定の履歴（さかのぼり） ---------- */
+.history-box { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px; }
+.history-box > summary {
+  cursor: pointer; font-size: 0.84rem; font-weight: 600; color: var(--primary);
+  list-style: none; user-select: none;
+}
+.history-box > summary::-webkit-details-marker { display: none; }
+.history-box > summary::before { content: '▸ '; }
+.history-box[open] > summary::before { content: '▾ '; }
+.history-list { margin-top: 10px; max-height: 200px; overflow-y: auto; } /* スクロールでさかのぼる */
+.history-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.history-item:hover { background: var(--bg); border-color: var(--primary); }
+.history-item .h-date { font-size: 0.76rem; color: var(--primary); font-weight: 700; min-width: 72px; white-space: nowrap; }
+.history-item .h-text { flex: 1; font-size: 0.88rem; word-break: break-word; }
+
+/* ---------- 予定一覧（箇条書き・並び替え・検索） ---------- */
+.search-input {
+  width: 100%; padding: 10px 12px; margin-bottom: 12px;
+  border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; color: var(--text); background: var(--card);
+}
+.search-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(177,92,59,0.16); }
+
+.sort-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+  font-size: 0.82rem; color: var(--muted); font-weight: 600;
+}
+.sort-row select {
+  padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 0.88rem; color: var(--text); background: var(--card); cursor: pointer;
+}
+.sort-row select:focus { outline: none; border-color: var(--primary); }
+.all-list { list-style: disc; padding-left: 22px; margin: 0; max-height: 60vh; overflow-y: auto; }
+.all-item { padding: 7px 0; font-size: 0.9rem; line-height: 1.5; word-break: break-word; }
+.all-item::marker { color: var(--primary); }
+.all-item .a-date { color: var(--primary); font-weight: 700; margin-right: 8px; }
+.all-item .a-time { color: var(--muted); margin-right: 8px; white-space: nowrap; }
+.all-item .a-text { color: var(--text); }
+.all-list .empty-note { list-style: none; }

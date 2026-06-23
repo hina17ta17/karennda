@@ -11,7 +11,7 @@
   <!-- ========== ログイン画面（LINEログイン） ========== -->
   <div id="auth-view" class="auth-view">
     <div class="auth-card">
-      <h1 class="logo">📅 Easy to use calendar</h1>
+      <h1 class="logo"> Easy to use calendar</h1>
       <p class="auth-subtitle">LINEアカウントでログインして<br>自分専用のカレンダーを使いましょう</p>
 
       <p id="auth-error" class="error-msg"></p>
@@ -28,12 +28,21 @@
         <h2 id="month-label">2026年 6月</h2>
         <button id="next-month" class="nav-btn">›</button>
         <button id="today-btn" class="today-btn">今日</button>
+        <button id="jump-btn" class="today-btn">月を選択</button>
+        <button id="list-btn" class="today-btn">予定一覧</button>
       </div>
       <div class="user-box">
         <span id="user-label"></span>
         <button id="logout-btn" class="logout-btn">ログアウト</button>
       </div>
     </header>
+
+    <!-- 年・月を指定してジャンプ（「月を選択」で開閉）-->
+    <div id="month-picker" class="month-picker hidden">
+      <label>年 <select id="year-select"></select></label>
+      <label>月 <select id="month-select"></select></label>
+      <button id="picker-go" class="btn-primary">移動</button>
+    </div>
 
     <div class="weekday-row">
       <div class="sun">日</div><div>月</div><div>火</div><div>水</div>
@@ -64,10 +73,40 @@
           </label>
         </div>
         <label>内容
-          <input type="text" id="content" required placeholder="例: 会議、打ち合わせ" />
+          <input type="text" id="content" required placeholder="例: 会議、打ち合わせ"
+                 list="content-history" autocomplete="off" />
+          <!-- 過去に入力した内容の候補（入力時にさかのぼって選べる） -->
+          <datalist id="content-history"></datalist>
         </label>
         <button type="submit" class="btn-primary">＋ 予定を追加</button>
       </form>
+
+      <!-- これまでの予定の履歴（さかのぼって閲覧）-->
+      <details class="history-box">
+        <summary>これまでの予定をさかのぼる</summary>
+        <div id="history-list" class="history-list"></div>
+      </details>
+    </div>
+  </div>
+
+  <!-- ========== 予定一覧（全予定・並び替え可能） ========== -->
+  <div id="list-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>予定一覧</h3>
+        <button id="list-close" class="modal-close">×</button>
+      </div>
+      <input type="search" id="search-input" class="search-input"
+             placeholder="🔍 予定名で検索" autocomplete="off" />
+      <label class="sort-row">並び替え
+        <select id="sort-select">
+          <option value="date-asc">日付（古い順）</option>
+          <option value="date-desc">日付（新しい順）</option>
+          <option value="time-asc">時間（早い順）</option>
+          <option value="content-asc">内容（あいうえお順）</option>
+        </select>
+      </label>
+      <ul id="all-list" class="all-list"></ul>
     </div>
   </div>
 

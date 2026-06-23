@@ -32,10 +32,13 @@ const overlay      = document.getElementById('modal-overlay');
 const modalDate    = document.getElementById('modal-date');
 const scheduleList = document.getElementById('schedule-list');
 const scheduleForm = document.getElementById('schedule-form');
+const contentHistory = document.getElementById('content-history'); // 入力候補(datalist)
+const historyList    = document.getElementById('history-list');    // 履歴一覧
 
 // --- 状態 ---------------------------------------------------
 let viewDate = new Date();          // 表示中の月
 let monthSchedules = [];            // 表示月の予定（キャッシュ）
+let allSchedules = [];              // 全期間の予定（履歴・入力候補用）
 let selectedDate = null;            // モーダルで選択中の日付 'YYYY-MM-DD'
 let liffId = '';                    // サーバーから受け取るLIFF ID
 
@@ -84,6 +87,7 @@ function enterApp(user) {
   userLabel.textContent = `👤 ${user.username}`;
   viewDate = new Date();
   renderCalendar();
+  loadAllSchedules();   // 履歴・入力候補のための全予定を読み込み
 }
 
 function exitApp() {
@@ -189,6 +193,118 @@ document.getElementById('today-btn').addEventListener('click', () => {
   renderCalendar();
 });
 
+// --- 年・月を指定してジャンプ ---------------------------------
+const jumpBtn     = document.getElementById('jump-btn');
+const monthPicker = document.getElementById('month-picker');
+const yearSelect  = document.getElementById('year-select');
+const monthSelect = document.getElementById('month-select');
+
+// 年（今年の前後10年）と月（1〜12）の選択肢を一度だけ用意
+(function fillPickerOptions() {
+  const thisYear = new Date().getFullYear();
+  for (let y = thisYear - 10; y <= thisYear + 10; y++) {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y + '年';
+    yearSelect.appendChild(o);
+  }
+  for (let m = 1; m <= 12; m++) {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m + '月';
+    monthSelect.appendChild(o);
+  }
+})();
+
+// 「🗓 月を選択」で開閉。開く時は今表示中の年月を初期選択にする
+jumpBtn.addEventListener('click', () => {
+  if (monthPicker.classList.contains('hidden')) {
+    yearSelect.value = viewDate.getFullYear();
+    monthSelect.value = viewDate.getMonth() + 1;
+  }
+  monthPicker.classList.toggle('hidden');
+});
+
+// 「移動」で指定した年月へジャンプ
+document.getElementById('picker-go').addEventListener('click', () => {
+  const y = Number(yearSelect.value);
+  const m = Number(monthSelect.value) - 1; // 0始まり
+  viewDate = new Date(y, m, 1);
+  renderCalendar();
+  monthPicker.classList.add('hidden');
+});
+
+// ============================================================
+// 予定一覧（全予定を箇条書き表示・並び替え）
+// ============================================================
+const listBtn     = document.getElementById('list-btn');
+const listOverlay = document.getElementById('list-overlay');
+const sortSelect  = document.getElementById('sort-select');
+const allList     = document.getElementById('all-list');
+const searchInput = document.getElementById('search-input');
+
+function renderAllList() {
+  // 予定名で絞り込み（大文字小文字を無視した部分一致）
+  const q = searchInput.value.trim().toLowerCase();
+  let items = [...allSchedules];
+  if (q) {
+    items = items.filter((s) => (s.content || '').toLowerCase().includes(q));
+  }
+  const st = (s) => s.start_time || '';
+  switch (sortSelect.value) {
+    case 'date-asc':
+      items.sort((a, b) => (a.date + st(a)).localeCompare(b.date + st(b))); break;
+    case 'date-desc':
+      items.sort((a, b) => (b.date + st(b)).localeCompare(a.date + st(a))); break;
+    case 'time-asc':
+      items.sort((a, b) => st(a).localeCompare(st(b)) || a.date.localeCompare(b.date)); break;
+    case 'content-asc':
+      items.sort((a, b) => (a.content || '').localeCompare(b.content || '', 'ja')); break;
+  }
+
+  if (items.length === 0) {
+    allList.innerHTML = `<li class="empty-note">${q ? '該当する予定がありません' : '予定はまだありません'}</li>`;
+    return;
+  }
+  allList.innerHTML = '';
+  for (const s of items) {
+    const [y, m, d] = s.date.split('-');
+    const li = document.createElement('li');
+    li.className = 'all-item';
+
+    const dateEl = document.createElement('span');
+    dateEl.className = 'a-date';
+    dateEl.textContent = `${y}/${Number(m)}/${Number(d)}`;
+
+    const timeEl = document.createElement('span');
+    timeEl.className = 'a-time';
+    timeEl.textContent = (s.start_time || s.end_time)
+      ? `${s.start_time || ''}${s.end_time ? '-' + s.end_time : ''}`
+      : '終日';
+
+    const textEl = document.createElement('span');
+    textEl.className = 'a-text';
+    textEl.textContent = s.content;
+
+    li.appendChild(dateEl);
+    li.appendChild(timeEl);
+    li.appendChild(textEl);
+    allList.appendChild(li);
+  }
+}
+
+// 「📋 予定一覧」で開く（最新の全予定を取得して表示）
+listBtn.addEventListener('click', async () => {
+  searchInput.value = '';   // 開くたびに検索をリセット
+  await loadAllSchedules();
+  renderAllList();
+  listOverlay.classList.remove('hidden');
+});
+sortSelect.addEventListener('change', renderAllList);
+searchInput.addEventListener('input', renderAllList); // 入力するたび絞り込み
+document.getElementById('list-close').addEventListener('click', () => listOverlay.classList.add('hidden'));
+listOverlay.addEventListener('click', (e) => {
+  if (e.target === listOverlay) listOverlay.classList.add('hidden');
+});
+
 // ============================================================
 // 予定モーダル
 // ============================================================
@@ -198,12 +314,88 @@ function openModal(dateStr) {
   modalDate.textContent = `${y}年${Number(m)}月${Number(d)}日 の予定`;
   scheduleForm.reset();
   renderModalList();
+  renderHistoryList();   // これまでの予定（履歴）も表示
   overlay.classList.remove('hidden');
 }
 
 function closeModal() {
   overlay.classList.add('hidden');
   selectedDate = null;
+}
+
+// ============================================================
+// 履歴・入力候補（全期間の予定を使う）
+// ============================================================
+// 全期間の予定を取得（month指定なし＝本人の全件）。候補も更新。
+async function loadAllSchedules() {
+  try {
+    allSchedules = await api('GET', '/api/schedules');
+  } catch (_) {
+    allSchedules = [];
+  }
+  renderContentHistory();
+}
+
+// 新しい順に並べた予定（履歴表示・候補で共通利用）
+function schedulesNewestFirst() {
+  return [...allSchedules].sort((a, b) =>
+    (b.date + (b.start_time || '')).localeCompare(a.date + (a.start_time || ''))
+  );
+}
+
+// 入力候補(datalist): 過去に使った「内容」を新しい順・重複なしで最大50件
+function renderContentHistory() {
+  const seen = new Set();
+  const options = [];
+  for (const s of schedulesNewestFirst()) {
+    const c = (s.content || '').trim();
+    if (c && !seen.has(c)) {
+      seen.add(c);
+      options.push(c);
+    }
+  }
+  contentHistory.innerHTML = '';
+  for (const c of options.slice(0, 50)) {
+    const opt = document.createElement('option');
+    opt.value = c;
+    contentHistory.appendChild(opt);
+  }
+}
+
+// 履歴一覧（モーダル内）: 全予定を新しい順に表示。クリックで内容を入力欄へ。
+function renderHistoryList() {
+  const items = schedulesNewestFirst();
+  if (items.length === 0) {
+    historyList.innerHTML = '<p class="empty-note">まだ予定がありません</p>';
+    return;
+  }
+  historyList.innerHTML = '';
+  for (const s of items) {
+    const [, m, d] = s.date.split('-');
+    const row = document.createElement('div');
+    row.className = 'history-item';
+    row.title = 'クリックで内容を入力欄に入れる';
+
+    const when = document.createElement('span');
+    when.className = 'h-date';
+    when.textContent = `${Number(m)}/${Number(d)}` + (s.start_time ? ' ' + s.start_time : '');
+
+    const text = document.createElement('span');
+    text.className = 'h-text';
+    text.textContent = s.content;
+
+    // クリックで内容（と時間）を入力欄に流し込み、再利用しやすく
+    row.addEventListener('click', () => {
+      document.getElementById('content').value = s.content;
+      if (s.start_time) document.getElementById('start-time').value = s.start_time;
+      if (s.end_time) document.getElementById('end-time').value = s.end_time;
+      document.getElementById('content').focus();
+    });
+
+    row.appendChild(when);
+    row.appendChild(text);
+    historyList.appendChild(row);
+  }
 }
 
 function renderModalList() {
@@ -240,7 +432,9 @@ function renderModalList() {
     del.addEventListener('click', async () => {
       await api('DELETE', `/api/schedules/${s.id}`);
       await renderCalendar();   // キャッシュ更新
+      await loadAllSchedules(); // 履歴・候補を更新
       renderModalList();        // 一覧再描画
+      renderHistoryList();      // 履歴一覧も更新
     });
 
     row.appendChild(time);
@@ -262,7 +456,9 @@ scheduleForm.addEventListener('submit', async (e) => {
   });
   scheduleForm.reset();
   await renderCalendar();  // カレンダーのキャッシュと表示を更新
+  await loadAllSchedules(); // 履歴・入力候補を更新
   renderModalList();       // モーダル内一覧も更新
+  renderHistoryList();     // 履歴一覧も更新
 });
 
 document.getElementById('modal-close').addEventListener('click', closeModal);
@@ -313,7 +509,7 @@ overlay.addEventListener('click', (e) => {
     return;
   } catch (_) { /* 未ログイン → LINE認証へ */ }
 
-  // 2) LIFF 初期化
+  // 2) サーバー設定を取得
   authStatus.textContent = '読み込み中…';
   try {
     const cfg = await api('GET', '/api/config');
@@ -323,6 +519,7 @@ overlay.addEventListener('click', (e) => {
     return;
   }
 
+  // 3) LIFF 初期化（LINEログイン）
   if (!liffId) {
     showAuthMessage('LIFF IDが未設定です。環境変数 LIFF_ID（.env / Render）を設定してください。');
     return;
