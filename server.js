@@ -50,31 +50,44 @@ app.get('/api/config', (req, res) => {
 // LINEログイン: フロントから受け取ったIDトークンをLINEに検証してもらい、
 // 正当ならそのLINEユーザーでセッションを作る（無ければ新規作成）。
 app.post('/api/line-login', wrap(async (req, res) => {
-  const { idToken } = req.body || {};
-  if (!idToken) {
-    return res.status(400).json({ error: 'IDトークンがありません' });
+  const { accessToken } = req.body || {};
+  if (!accessToken) {
+    return res.status(400).json({ error: 'アクセストークンがありません' });
   }
   const channelId = process.env.LINE_CHANNEL_ID;
   if (!channelId) {
     return res.status(500).json({ error: 'サーバー側で LINE_CHANNEL_ID が未設定です' });
   }
 
-  // LINEの公式エンドポイントでIDトークンの正当性を検証
-  const verifyRes = await fetch('https://api.line.me/oauth2/v2.1/verify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ id_token: idToken, client_id: channelId }),
-  });
-  const profile = await verifyRes.json();
-  if (!verifyRes.ok || !profile.sub) {
-    // LINEが拒否した本当の理由をログと画面に出す（原因特定用）
-    console.error('[line-login] verify失敗:', verifyRes.status, JSON.stringify(profile));
-    const detail = (profile && (profile.error_description || profile.error)) || `status ${verifyRes.status}`;
+  // ① アクセストークンを検証（このチャネル向けか・有効期限内か）
+  //    IDトークンと違い、LIFFのアクセストークンは期限切れになりにくい。
+  const verifyRes = await fetch(
+    'https://api.line.me/oauth2/v2.1/verify?access_token=' + encodeURIComponent(accessToken)
+  );
+  const verify = await verifyRes.json();
+  if (!verifyRes.ok) {
+    console.error('[line-login] token検証失敗:', verifyRes.status, JSON.stringify(verify));
+    const detail = (verify && (verify.error_description || verify.error)) || `status ${verifyRes.status}`;
     return res.status(401).json({ error: `LINE認証に失敗しました（${detail}）` });
   }
+  // このアクセストークンが本当に自分のチャネル向けに発行されたものか確認（なりすまし防止）
+  if (verify.client_id !== channelId) {
+    console.error('[line-login] channel不一致:', verify.client_id, '≠', channelId);
+    return res.status(401).json({ error: 'LINE認証に失敗しました（チャネル不一致）' });
+  }
 
-  const lineUserId = profile.sub;                 // LINEのユーザーID
-  const displayName = profile.name || 'LINEユーザー';
+  // ② プロフィールを取得（ユーザーID・表示名）
+  const profRes = await fetch('https://api.line.me/v2/profile', {
+    headers: { Authorization: 'Bearer ' + accessToken },
+  });
+  const profile = await profRes.json();
+  if (!profRes.ok || !profile.userId) {
+    console.error('[line-login] profile取得失敗:', profRes.status, JSON.stringify(profile));
+    return res.status(401).json({ error: 'LINEプロフィールの取得に失敗しました' });
+  }
+
+  const lineUserId = profile.userId;              // LINEのユーザーID
+  const displayName = profile.displayName || 'LINEユーザー';
 
   // 既存ユーザーを探す → 無ければ作成（upsert）
   let user = await db.get('SELECT * FROM users WHERE line_user_id = ?', [lineUserId]);

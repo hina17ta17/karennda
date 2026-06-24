@@ -50,18 +50,19 @@ function showAuthMessage(msg) {
   authError.textContent = msg;
 }
 
-// LINEのIDトークンをサーバーに送ってログイン（セッション確立）
+// LINEのアクセストークンをサーバーに送ってログイン（セッション確立）
+// （IDトークンは期限切れになりやすいため、期限切れしにくいアクセストークンを使う）
 async function loginWithLine() {
   authError.textContent = '';
   authStatus.textContent = 'ログイン中…';
-  const idToken = liff.getIDToken();
-  if (!idToken) {
-    showAuthMessage('IDトークンを取得できませんでした。LINEログインをやり直してください。');
-    lineLoginBtn.classList.remove('hidden');
+  const accessToken = liff.getAccessToken();
+  if (!accessToken) {
+    // トークンが取れない場合はLINEログインをやり直す
+    liff.login();
     return;
   }
   try {
-    const user = await api('POST', '/api/line-login', { idToken });
+    const user = await api('POST', '/api/line-login', { accessToken });
     enterApp(user);
   } catch (err) {
     showAuthMessage('ログインに失敗しました: ' + err.message);
