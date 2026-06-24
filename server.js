@@ -67,7 +67,10 @@ app.post('/api/line-login', wrap(async (req, res) => {
   });
   const profile = await verifyRes.json();
   if (!verifyRes.ok || !profile.sub) {
-    return res.status(401).json({ error: 'LINE認証に失敗しました' });
+    // LINEが拒否した本当の理由をログと画面に出す（原因特定用）
+    console.error('[line-login] verify失敗:', verifyRes.status, JSON.stringify(profile));
+    const detail = (profile && (profile.error_description || profile.error)) || `status ${verifyRes.status}`;
+    return res.status(401).json({ error: `LINE認証に失敗しました（${detail}）` });
   }
 
   const lineUserId = profile.sub;                 // LINEのユーザーID
