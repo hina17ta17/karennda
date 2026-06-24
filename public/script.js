@@ -165,7 +165,8 @@ async function renderCalendar() {
     events.slice(0, 3).forEach((ev) => {
       const pill = document.createElement('div');
       pill.className = 'event-pill';
-      pill.textContent = (ev.start_time ? ev.start_time + ' ' : '') + ev.content;
+      // 内容（予定名）を先頭にして、狭いマスでも予定の最初の文字が見えるようにする
+      pill.textContent = ev.content + (ev.start_time ? ' ' + ev.start_time : '');
       cell.appendChild(pill);
     });
     if (events.length > 3) {
@@ -334,6 +335,68 @@ async function loadAllSchedules() {
     allSchedules = [];
   }
   renderContentHistory();
+  renderWeekList();      // サイドバー（今後1週間）も更新
+}
+
+// ============================================================
+// サイドバー：今日から1週間の予定（今日に近い順＝上から）
+// ============================================================
+const weekList = document.getElementById('week-list');
+
+function renderWeekList() {
+  const t = new Date();
+  const startStr = ymd(t.getFullYear(), t.getMonth(), t.getDate());            // 今日
+  const end = new Date(t.getFullYear(), t.getMonth(), t.getDate() + 6);        // 6日後
+  const endStr = ymd(end.getFullYear(), end.getMonth(), end.getDate());
+
+  // 今日〜6日後（計7日間）を、今日に近い順（昇順）に並べる
+  const items = allSchedules
+    .filter((s) => s.date >= startStr && s.date <= endStr)
+    .sort((a, b) => (a.date + (a.start_time || '')).localeCompare(b.date + (b.start_time || '')));
+
+  if (items.length === 0) {
+    weekList.innerHTML = '<p class="week-empty">今後1週間の予定はありません</p>';
+    return;
+  }
+
+  const WD = ['日', '月', '火', '水', '木', '金', '土'];
+  weekList.innerHTML = '';
+  for (const s of items) {
+    const [y, m, d] = s.date.split('-').map(Number);
+    const wd = WD[new Date(y, m - 1, d).getDay()];
+
+    const row = document.createElement('div');
+    row.className = 'week-item';
+    if (s.date === startStr) row.classList.add('today');
+    row.title = 'クリックでその日を開く';
+
+    const day = document.createElement('div');
+    day.className = 'w-day';
+    day.textContent = `${m}/${d}(${wd})` + (s.date === startStr ? ' 今日' : '');
+
+    const text = document.createElement('div');
+    text.className = 'w-text';
+    text.textContent = s.content;
+
+    const time = document.createElement('div');
+    time.className = 'w-time';
+    time.textContent = (s.start_time || s.end_time)
+      ? `${s.start_time || ''}${s.end_time ? '-' + s.end_time : ''}`
+      : '終日';
+
+    row.appendChild(day);
+    row.appendChild(text);
+    row.appendChild(time);
+
+    // クリックでその予定の月へ移動し、その日のモーダルを開く
+    row.addEventListener('click', async () => {
+      viewDate = new Date(y, m - 1, 1);
+      await renderCalendar();
+      openModal(s.date);
+    });
+
+    weekList.appendChild(row);
+  }
 }
 
 // 新しい順に並べた予定（履歴表示・候補で共通利用）

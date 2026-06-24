@@ -78,7 +78,7 @@ form input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 
 .error-msg { color: var(--sun); font-size: 0.82rem; min-height: 1.1em; margin-bottom: 8px; }
 
 /* ---------- アプリヘッダー ---------- */
-.app-view { max-width: 1000px; margin: 0 auto; padding: 28px 16px; }
+.app-view { max-width: 1180px; margin: 0 auto; padding: 28px 16px; }
 .app-header {
   display: flex; justify-content: space-between; align-items: center;
   flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
@@ -132,6 +132,38 @@ form input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 
 }
 .weekday-row .sun { color: var(--sun); }
 .weekday-row .sat { color: var(--sat); }
+
+/* ---------- カレンダー + サイドバーの横並び ---------- */
+.app-body { display: flex; gap: 20px; align-items: flex-start; }
+.cal-main { flex: 1; min-width: 0; }  /* min-width:0 でグリッドが縮められる */
+
+.week-sidebar {
+  width: 264px; flex-shrink: 0;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px 16px 18px;
+}
+.week-sidebar h3 {
+  font-family: var(--serif); font-weight: 600; font-size: 1.04rem;
+  letter-spacing: 0.01em; margin-bottom: 14px;
+  padding-bottom: 10px; border-bottom: 1px solid var(--border);
+}
+.week-list { display: flex; flex-direction: column; gap: 8px; }
+.week-item {
+  border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.week-item:hover { background: var(--bg); border-color: var(--primary); }
+.week-item.today { border-color: var(--primary); background: var(--accent-soft); }
+.week-item .w-day { font-size: 0.74rem; color: var(--primary); font-weight: 700; margin-bottom: 3px; }
+.week-item .w-text { font-size: 0.88rem; color: var(--text); word-break: break-word; margin-bottom: 2px; }
+.week-item .w-time { font-size: 0.72rem; color: var(--muted); }
+.week-empty { color: var(--muted); font-size: 0.84rem; padding: 6px 2px; }
+
+/* 画面が狭い時（スマホ等）はサイドバーをカレンダーの下に回す */
+@media (max-width: 760px) {
+  .app-body { flex-direction: column; }
+  .week-sidebar { width: 100%; }
+}
 
 /* ---------- カレンダー本体 ---------- */
 .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }

@@ -44,11 +44,22 @@
       <button id="picker-go" class="btn-primary">移動</button>
     </div>
 
-    <div class="weekday-row">
-      <div class="sun">日</div><div>月</div><div>火</div><div>水</div>
-      <div>木</div><div>金</div><div class="sat">土</div>
+    <div class="app-body">
+      <!-- カレンダー本体 -->
+      <div class="cal-main">
+        <div class="weekday-row">
+          <div class="sun">日</div><div>月</div><div>火</div><div>水</div>
+          <div>木</div><div>金</div><div class="sat">土</div>
+        </div>
+        <div id="calendar-grid" class="calendar-grid"></div>
+      </div>
+
+      <!-- サイドバー：今日から1週間の予定（今日に近い順）-->
+      <aside class="week-sidebar">
+        <h3>今後1週間の予定</h3>
+        <div id="week-list" class="week-list"></div>
+      </aside>
     </div>
-    <div id="calendar-grid" class="calendar-grid"></div>
   </div>
 
   <!-- ========== 予定モーダル ========== -->
